@@ -1,9 +1,8 @@
 import math
 monkeys = []
 monkeys_items = []
-
+total_test = 1
 with open('11input.txt','r') as f:
-    
     while True:
         first_line = f.readline()
         if first_line == '':
@@ -21,17 +20,18 @@ with open('11input.txt','r') as f:
             'true': monkey_true,
             'false': monkey_false
         }
+        total_test = total_test * monkey_test
         monkeys.append(current_monkey)
         monkeys_items.append(monkey_items.copy())
         f.readline()
 
 monkeys_inspected_item = [0] * len(monkeys)
-for round in range(20):
+for round in range(10000):
     for idx, monkey in enumerate(monkeys):
         while len(monkeys_items[idx]) > 0:
             current_item = monkeys_items[idx].pop(0)
             old = current_item
-            current_item = math.floor(eval(monkey['operation']) / 3)
+            current_item = eval(monkey['operation']) % total_test
             if current_item % monkey['test'] == 0:
                 monkeys_items[monkey['true']].append(current_item)
             else:
