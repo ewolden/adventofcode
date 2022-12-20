@@ -1,123 +1,86 @@
-class Tree:
-    def __init__(self, height = None, left = None, right = None, up = None, down = None) -> None:
-        self.height = height
-        self.left = left
-        self.right = right
-        self.up = up
-        self.down = down
-
-    def __str__(self) -> str:
-        current_dirs = []
-        if self.left:
-            current_dirs.append('L')
-        if self.right:
-            current_dirs.append('R')
-        if self.up:
-            current_dirs.append('U')
-        if self.down:
-            current_dirs.append('D')
-        current_dirs = ",".join(current_dirs)
-        return "height: " + str(self.height) + ", current dirs :"  + current_dirs
-
-def print_heightmap(input_array):
-    for line in input_array:
-        print(line)
-
-def check_if_not_visited_and_okay(height_array, current_height, next_location, grid_size, visited):
-    if next_location[0] < 0 or next_location[0] > grid_size[0] \
-        or next_location[1] < 0 or next_location[1] > grid_size[1] \
-            or next_location in visited:
-        return False
-    if height_array[next_location[0]][next_location[1]] == current_height \
-        or height_array[next_location[0]][next_location[1]] == current_height + 1:
-        return True
-    else:
-        return False
-
-def create_tree_from_loc(height_array, current_height, current_location, visited, current_tree):
-    current_tree.height = current_height
-    current_location_height = height_array[current_location[0]][current_location[1]] 
-    grid_size = [len(height_array) - 1, len(height_array[0]) - 1]
-    current_visited = visited.copy()
-    if current_location_height == 27:
-        return current_tree
-    else:
-        #try to go in all directions
-        #left
-        next_location = [current_location[0] - 1, current_location[1]]
-        if check_if_not_visited_and_okay(height_array, current_height, next_location, grid_size, current_visited):
-            current_visited.append(next_location)
-            next_location_height = height_array[next_location[0]][next_location[1]]
-            current_tree.left = create_tree_from_loc(height_array, next_location_height, next_location,current_visited, Tree())
-        #right
-        next_location = [current_location[0] + 1, current_location[1]]
-        if check_if_not_visited_and_okay(height_array, current_height, next_location, grid_size, current_visited):
-            current_visited.append(next_location)
-            next_location_height = height_array[next_location[0]][next_location[1]]
-            current_tree.right = create_tree_from_loc(height_array, next_location_height, next_location,current_visited, Tree())
-        #up
-        next_location = [current_location[0], current_location[1] - 1]
-        if check_if_not_visited_and_okay(height_array, current_height, next_location, grid_size, current_visited):
-            current_visited.append(next_location)
-            next_location_height = height_array[next_location[0]][next_location[1]]
-            current_tree.up = create_tree_from_loc(height_array, next_location_height, next_location,current_visited, Tree())
-        #down
-        next_location = [current_location[0], current_location[1] + 1]
-        if check_if_not_visited_and_okay(height_array, current_height, next_location, grid_size, current_visited):
-            current_visited.append(next_location)
-            next_location_height = height_array[next_location[0]][next_location[1]]
-            current_tree.down = create_tree_from_loc(height_array, next_location_height, next_location,current_visited, Tree())
-        #print(current_tree)
-        return current_tree
+import copy
+def valid_next(height_array, current_position):
+    current_height = height_array[current_position[0]][current_position[1]]
+    valid_positions = []
+    # left
+    next_x = current_position[0] - 1
+    next_y = current_position[1]
+    if      next_x >= 0 \
+        and next_x < len(height_array) \
+        and height_array[next_x][next_y] - current_height < 2:
+        valid_positions.append([next_x, next_y])
+    # right
+    next_x = current_position[0] + 1
+    next_y = current_position[1]
+    if      next_x >= 0 \
+        and next_x < len(height_array) \
+        and height_array[next_x][next_y] - current_height < 2:
+        valid_positions.append([next_x, next_y])
+    # up
+    next_x = current_position[0] 
+    next_y = current_position[1] + 1
+    if      next_y >= 0 \
+        and next_y < len(height_array[next_x]) \
+        and height_array[next_x][next_y] - current_height < 2:
+        valid_positions.append([next_x, next_y])
+    # down
+    next_x = current_position[0]
+    next_y = current_position[1] - 1
+    if      next_y >= 0 \
+        and next_y < len(height_array[next_x]) \
+        and height_array[next_x][next_y] - current_height < 2:
+        valid_positions.append([next_x, next_y])
+    return valid_positions
 
 
-def dfs(input_tree):
-    queue = [(input_tree, [])]
-    while queue:
-        (tree, path) = queue.pop(0)
-        tree.path = path.copy() + [tree]
-        if tree and tree.height == 27:
-            yield tree.path
-        if tree and tree.left:
-            if tree.left not in tree.path:
-                #visited.append(tree.left)
-                queue.append((tree.left, tree.path))
-        if tree and tree.right:
-            if tree.right not in tree.path:
-                #visited.append(tree.right)
-                queue.append((tree.right, tree.path))
-                #dfs(tree.right, target_node, visited)
-        if tree and tree.up:
-            if tree.up not in tree.path:
-                #visited.append(tree.up)
-                queue.append((tree.up, tree.path))
-                #dfs(tree.up, target_node, visited)
-        if tree and tree.down:
-            if tree.down not in tree.path:
-                #visited.append(tree.down)
-                queue.append((tree.down, tree.path))
-                #dfs(tree.down, target_node, visited)
+def dijkstra(height_array, start_position, goal_position, letter_array):
+    Q = [(start_position, [], 0)]
+    distance_from_source = []
 
+    for line in height_array:
+        distance_from_source.append([99999999]*len(line))
+    while Q:
+        Q.sort(key=lambda a: a[2])
+        tree, history, distance = Q.pop(0)
+        history += [tree]
+        if tree == goal_position:
+            new_letter_array = copy.deepcopy(letter_array)
+            for segment in history:
+                if segment == start_position:
+                    continue
+                new_letter_array[segment[0]][segment[1]] = new_letter_array[segment[0]][segment[1]].upper()
+            for line in new_letter_array:
+                print(''.join(line))
+            print()
+            print(distance-2)#, tree, len(history))
+        neighbours = valid_next(height_array, tree)
+        for neighbour in neighbours:
+            new_distance = distance + 1
+            if new_distance < distance_from_source[neighbour[0]][neighbour[1]]:
+                distance_from_source[neighbour[0]][neighbour[1]] = new_distance
+                #print(list(filter(lambda x: x[2] == neighbour, Q)))
+                if list(filter(lambda x: x[2] == neighbour, Q)) == []:
+                    Q.append((copy.deepcopy(neighbour),copy.deepcopy(history),new_distance))
+    
 height_array = []
+letter_array = []
 starting_position = []
+goal_position = []
 with open('12input.txt','r') as f:
     for i, line in enumerate(f):
         current_line = []
+        current_letter_line = []
         for j, item in enumerate(line.rstrip()):
             if item == 'S':
                 current_line.append(1)
                 starting_position = [i, j]
             elif item == 'E':
                 current_line.append(27)
+                goal_position = [i, j]
             else:
                 current_line.append(ord(item) - 96)
+            current_letter_line.append(item)
         height_array.append(current_line)
-root_node = Tree()
+        letter_array.append(current_letter_line)
 
-create_tree_from_loc(height_array, 0, starting_position, [], root_node)    
-print(root_node)
-for trees in list(dfs(root_node)):
-    #for single_tree in trees:
-     #   print(single_tree)
-    #break
-    print(len(trees) - 1)
+dijkstra(height_array, starting_position, goal_position, letter_array)
