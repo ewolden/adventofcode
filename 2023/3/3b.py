@@ -3,23 +3,53 @@ def is_digit(char):
         return True
     else:
         return False
-    
-def has_adjacent(arr, line_idx, idx):
-    if line_idx > 0:
-        if (idx > 0 and is_digit(arr[line_idx-1][idx-1])) \
-            or (is_digit(arr[line_idx-1][idx])) \
-            or (idx < len(arr[0])-1 and is_digit(arr[line_idx-1][idx+1])):
-            return True
-    if (idx > 0 and is_digit(arr[line_idx][idx-1])) \
-        or (idx < len(arr[0])-1 and is_digit(arr[line_idx][idx+1])):
-        return True
-    if line_idx < len(arr)-1:
-        if (idx > 0 and is_digit(arr[line_idx+1][idx-1])) \
-            or (is_digit(arr[line_idx+1][idx])) \
-            or (idx < len(arr[0])-1 and is_digit(arr[line_idx+1][idx+1])):
-            return True
-    return False
 
+def find_number(arr, line_idx, idx):
+    i = idx
+    number = []
+    while i <= len(arr[line_idx])-1 and is_digit(arr[line_idx][i]):
+        number.append(arr[line_idx][i])
+        i += 1
+    i = idx - 1
+    while i >= 0 and is_digit(arr[line_idx][i]):
+        number = [arr[line_idx][i]] + number
+        i -= 1
+    return int(''.join(number))
+
+def find_adjacent(arr, line_idx, idx):
+    adjecent_nums = []
+    num_adjacent = 0
+    #row -1
+    if line_idx > 0:
+        if idx > 0 and is_digit(arr[line_idx-1][idx-1]) and is_digit(arr[line_idx-1][idx+1]) and not is_digit(arr[line_idx-1][idx]):
+            adjecent_nums.append(find_number(arr, line_idx-1, idx-1))
+            adjecent_nums.append(find_number(arr, line_idx-1, idx+1))
+        elif idx > 0 and is_digit(arr[line_idx-1][idx-1]):
+            adjecent_nums.append(find_number(arr, line_idx-1, idx-1))
+        elif is_digit(arr[line_idx-1][idx]):
+            adjecent_nums.append(find_number(arr, line_idx-1, idx))
+        elif idx < len(arr[line_idx])-1 and is_digit(arr[line_idx-1][idx+1]):
+            adjecent_nums.append(find_number(arr, line_idx-1, idx+1))
+    #same row
+    if idx > 0 and is_digit(arr[line_idx][idx-1]):
+        adjecent_nums.append(find_number(arr, line_idx, idx-1))
+    if idx < len(arr[line_idx])-1 and is_digit(arr[line_idx][idx+1]):
+        adjecent_nums.append(find_number(arr, line_idx, idx+1))
+    #row +1
+    if line_idx < len(arr) -1:
+        if idx > 0 and is_digit(arr[line_idx+1][idx-1]) and is_digit(arr[line_idx+1][idx+1]) and not is_digit(arr[line_idx+1][idx]):
+            adjecent_nums.append(find_number(arr, line_idx+1, idx-1))
+            adjecent_nums.append(find_number(arr, line_idx+1, idx+1))
+        elif idx > 0 and is_digit(arr[line_idx+1][idx-1]):
+            adjecent_nums.append(find_number(arr, line_idx+1, idx-1))
+        elif is_digit(arr[line_idx+1][idx]):
+            adjecent_nums.append(find_number(arr, line_idx+1, idx))
+        elif idx < len(arr[line_idx])-1 and is_digit(arr[line_idx+1][idx+1]):
+            adjecent_nums.append(find_number(arr, line_idx+1, idx+1))
+    if len(adjecent_nums) == 2:
+        return adjecent_nums
+    #else:
+    #    return []
 
 full_arr = []
 with open('3input.txt','r') as f:
@@ -36,20 +66,7 @@ for line_idx, line in enumerate(full_arr):
     cur_num_has_adjacent =  False
     for idx, char in enumerate(line):
         if char == '*':
-            
-
-
-            if not cur_num_has_adjacent: cur_num_has_adjacent = has_adjacent(full_arr, line_idx, idx)
-            if not in_digit:
-                start_digit_idx = idx
-                in_digit = True
-        elif in_digit:
-            digit = int(line[start_digit_idx:idx])
-            if digit == 6: print(cur_num_has_adjacent)
-            if cur_num_has_adjacent: total_nums += digit
-            in_digit = False
-            cur_num_has_adjacent = False
-    if in_digit and cur_num_has_adjacent:
-        digit = int(line[start_digit_idx:len(line)])
-        total_nums += digit
+            adjacents_found = find_adjacent(full_arr, line_idx, idx)
+            if adjacents_found:
+                total_nums += adjacents_found[0] * adjacents_found[1]
 print(total_nums)
