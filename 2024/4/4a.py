@@ -30,15 +30,15 @@ def diagonal_slices(matrix):
 
 import re
 num_occurences = 0
-with open('4sampleinput.txt','r') as f:
+with open('4input.txt','r') as f:
     input_matrix = []
     for line in f:
         input_matrix.append(line.strip())
-        num_occurences += len(re.findall('XMAS|SAMX', line))
+        num_occurences += len(re.findall('(?=XMAS|SAMX)', line))
         
     for slice in vertical_slices(input_matrix):
-        num_occurences += len(re.findall('XMAS|SAMX', slice))
+        num_occurences += len(re.findall('(?=XMAS|SAMX)', slice))
     
     for slice in diagonal_slices(input_matrix):
-        num_occurences += len(re.findall('XMAS|SAMX', slice))
+        num_occurences += len(re.findall('(?=XMAS|SAMX)', slice))
 print(num_occurences)
